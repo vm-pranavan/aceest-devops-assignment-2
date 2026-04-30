@@ -342,3 +342,166 @@ class TestUtilities:
             assert "exercise" in item
             assert "sets" in item
             assert "reps" in item
+
+    def test_generate_ai_program_fat_loss_uses_conditioning(self):
+        """Fat Loss program should use Conditioning exercise pool."""
+        from app import EXERCISE_POOLS
+        program = generate_ai_program("Fat Loss (FL) - 3 day", "beginner")
+        conditioning_exercises = set(EXERCISE_POOLS["Conditioning"])
+        program_exercises = {item["exercise"] for item in program}
+        assert program_exercises.issubset(conditioning_exercises)
+
+    def test_generate_ai_program_muscle_gain_uses_hypertrophy(self):
+        """Muscle Gain program should use Hypertrophy exercise pool."""
+        from app import EXERCISE_POOLS
+        program = generate_ai_program("Muscle Gain (MG) - PPL", "beginner")
+        hypertrophy_exercises = set(EXERCISE_POOLS["Hypertrophy"])
+        program_exercises = {item["exercise"] for item in program}
+        assert program_exercises.issubset(hypertrophy_exercises)
+
+    def test_generate_ai_program_unknown_uses_full_body(self):
+        """Unknown program name should fall back to Full Body exercise pool."""
+        from app import EXERCISE_POOLS
+        program = generate_ai_program("Unknown Program", "beginner")
+        full_body_exercises = set(EXERCISE_POOLS["Full Body"])
+        program_exercises = {item["exercise"] for item in program}
+        assert program_exercises.issubset(full_body_exercises)
+
+    def test_generate_ai_program_intermediate(self):
+        """Intermediate program should have 4 days."""
+        program = generate_ai_program("Beginner (BG)", "intermediate")
+        days = set(item["day"] for item in program)
+        assert len(days) == 4
+
+    def test_generate_ai_program_intermediate_sets_range(self):
+        """Intermediate program sets should be in range 3-4."""
+        program = generate_ai_program("Beginner (BG)", "intermediate")
+        for item in program:
+            assert 3 <= item["sets"] <= 4
+
+    def test_generate_ai_program_advanced_sets_range(self):
+        """Advanced program sets should be in range 4-5."""
+        program = generate_ai_program("Muscle Gain (MG) - PPL", "advanced")
+        for item in program:
+            assert 4 <= item["sets"] <= 5
+
+    def test_calculate_bmi_negative_height(self):
+        """Negative height should return invalid."""
+        bmi, cat, _ = calculate_bmi(70, -175)
+        assert bmi is None
+        assert cat == "Invalid"
+
+    def test_calculate_bmi_negative_weight(self):
+        """Negative weight should return invalid."""
+        bmi, cat, _ = calculate_bmi(-70, 175)
+        assert bmi is None
+        assert cat == "Invalid"
+
+    def test_calculate_calories_fat_loss_5day(self):
+        """Calories for fat loss 5-day should use factor 24."""
+        cal = calculate_calories(70, "Fat Loss (FL) - 5 day")
+        assert cal == 70 * 24
+
+    def test_calculate_calories_beginner(self):
+        """Calories for beginner program should use factor 26."""
+        cal = calculate_calories(70, "Beginner (BG)")
+        assert cal == 70 * 26
+
+    def test_calculate_calories_none_weight(self):
+        """None weight should return None."""
+        cal = calculate_calories(None, "Beginner (BG)")
+        assert cal is None
+
+
+# ---------------------------------------------------------------------------
+# Additional Route Coverage Tests
+# ---------------------------------------------------------------------------
+
+class TestProgramGenerationEdgeCases:
+    """Tests for edge cases in the program generation route."""
+
+    def test_generate_program_invalid_experience(self, logged_in_client):
+        """Invalid experience level should flash error and redirect."""
+        response = logged_in_client.post("/programs/generate", data={
+            "client_name": "Some User",
+            "experience": "expert"
+        }, follow_redirects=True)
+        assert response.status_code == 200
+        assert b"Invalid" in response.data or b"experience" in response.data.lower()
+
+    def test_generate_program_no_client_match(self, logged_in_client):
+        """Generating program for non-existent client should use default program."""
+        response = logged_in_client.post("/programs/generate", data={
+            "client_name": "Ghost User",
+            "experience": "intermediate"
+        }, follow_redirects=True)
+        assert response.status_code == 200
+
+    def test_generate_program_intermediate_experience(self, logged_in_client):
+        """Generating a program with intermediate experience should succeed."""
+        logged_in_client.post("/clients/add", data={
+            "name": "Inter User", "age": 30,
+            "height": 175, "weight": 75,
+            "program": "Fat Loss (FL) - 5 day"
+        }, follow_redirects=True)
+        response = logged_in_client.post("/programs/generate", data={
+            "client_name": "Inter User",
+            "experience": "intermediate"
+        }, follow_redirects=True)
+        assert response.status_code == 200
+
+    def test_generate_program_advanced_experience(self, logged_in_client):
+        """Generating a program with advanced experience should succeed."""
+        logged_in_client.post("/clients/add", data={
+            "name": "Adv User", "age": 28,
+            "height": 180, "weight": 80,
+            "program": "Muscle Gain (MG) - PPL"
+        }, follow_redirects=True)
+        response = logged_in_client.post("/programs/generate", data={
+            "client_name": "Adv User",
+            "experience": "advanced"
+        }, follow_redirects=True)
+        assert response.status_code == 200
+
+
+class TestClientDetailEdgeCases:
+    """Tests for edge cases in client detail view."""
+
+    def test_client_detail_no_height_weight(self, logged_in_client):
+        """Client detail without height/weight should not show BMI."""
+        logged_in_client.post("/clients/add", data={
+            "name": "No BMI User", "age": 25,
+            "height": "", "weight": "",
+            "program": "Beginner (BG)"
+        }, follow_redirects=True)
+        response = logged_in_client.get("/client/No BMI User")
+        assert response.status_code == 200
+
+    def test_client_detail_shows_progress(self, logged_in_client):
+        """Client detail should show logged progress."""
+        logged_in_client.post("/clients/add", data={
+            "name": "Progress Check", "age": 30,
+            "height": 170, "weight": 75, "program": ""
+        }, follow_redirects=True)
+        logged_in_client.post(
+            "/client/Progress Check/progress",
+            data={"adherence": 90},
+            follow_redirects=True
+        )
+        response = logged_in_client.get("/client/Progress Check")
+        assert response.status_code == 200
+        assert b"90" in response.data
+
+    def test_client_detail_shows_metrics(self, logged_in_client):
+        """Client detail should show logged metrics."""
+        logged_in_client.post("/clients/add", data={
+            "name": "Metrics Check", "age": 25,
+            "height": 175, "weight": 70, "program": ""
+        }, follow_redirects=True)
+        logged_in_client.post(
+            "/client/Metrics Check/metric",
+            data={"date": "2026-04-30", "weight": 68.0, "waist": 78, "bodyfat": 14},
+            follow_redirects=True
+        )
+        response = logged_in_client.get("/client/Metrics Check")
+        assert response.status_code == 200
