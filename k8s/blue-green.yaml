@@ -1,0 +1,64 @@
+# Blue Deployment (Current Production)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-fitness-blue
+  namespace: aceest-fitness
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: aceest-fitness
+      color: blue
+  template:
+    metadata:
+      labels:
+        app: aceest-fitness
+        color: blue
+    spec:
+      containers:
+      - name: aceest-fitness
+        image: vmpranavan/aceest-fitness:v3.2.4
+        ports:
+        - containerPort: 5000
+
+---
+# Green Deployment (New Version)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-fitness-green
+  namespace: aceest-fitness
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: aceest-fitness
+      color: green
+  template:
+    metadata:
+      labels:
+        app: aceest-fitness
+        color: green
+    spec:
+      containers:
+      - name: aceest-fitness
+        image: vmpranavan/aceest-fitness:v4.0.0
+        ports:
+        - containerPort: 5000
+
+---
+# Service pointing to Blue (Switch to color: green to deploy)
+apiVersion: v1
+kind: Service
+metadata:
+  name: aceest-fitness-bg-service
+  namespace: aceest-fitness
+spec:
+  type: LoadBalancer
+  selector:
+    app: aceest-fitness
+    color: blue  # Change to green to cut over
+  ports:
+  - port: 80
+    targetPort: 5000

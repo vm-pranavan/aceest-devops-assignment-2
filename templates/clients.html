@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Clients — ACEest Fitness{% endblock %}
+{% block content %}
+<h1>Client Management</h1>
+
+<div class="card">
+    <h2>Add New Client</h2>
+    <form method="POST" action="{{ url_for('add_client') }}" class="form-inline-grid">
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" required placeholder="Client name">
+        </div>
+        <div class="form-group">
+            <label for="age">Age</label>
+            <input type="number" id="age" name="age" placeholder="Age">
+        </div>
+        <div class="form-group">
+            <label for="height">Height (cm)</label>
+            <input type="number" step="0.1" id="height" name="height" placeholder="Height">
+        </div>
+        <div class="form-group">
+            <label for="weight">Weight (kg)</label>
+            <input type="number" step="0.1" id="weight" name="weight" placeholder="Weight">
+        </div>
+        <div class="form-group">
+            <label for="program">Program</label>
+            <select id="program" name="program">
+                <option value="">Select...</option>
+                {% for key in programs %}
+                <option value="{{ key }}">{{ key }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Add Client</button>
+        </div>
+    </form>
+</div>
+
+<h2>All Clients</h2>
+{% if clients %}
+<table class="data-table">
+    <thead><tr><th>Name</th><th>Age</th><th>Weight</th><th>Program</th><th>Calories</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for c in clients %}
+    <tr>
+        <td><a href="{{ url_for('client_detail', name=c['name']) }}">{{ c['name'] }}</a></td>
+        <td>{{ c['age'] or '—' }}</td>
+        <td>{{ c['weight'] or '—' }} kg</td>
+        <td>{{ c['program'] or '—' }}</td>
+        <td>{{ c['calories'] or '—' }} kcal</td>
+        <td><span class="badge badge-success">{{ c['membership_status'] or 'Active' }}</span></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="empty-state">No clients registered yet.</p>
+{% endif %}
+{% endblock %}

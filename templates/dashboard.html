@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — ACEest Fitness{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">{{ total_clients }}</div>
+        <div class="stat-label">Total Clients</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ active_clients }}</div>
+        <div class="stat-label">Active Members</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ total_workouts }}</div>
+        <div class="stat-label">Workouts Logged</div>
+    </div>
+</div>
+
+<h2>Recent Clients</h2>
+{% if recent_clients %}
+<table class="data-table">
+    <thead><tr><th>Name</th><th>Program</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for c in recent_clients %}
+    <tr>
+        <td><a href="{{ url_for('client_detail', name=c['name']) }}">{{ c['name'] }}</a></td>
+        <td>{{ c['program'] or '—' }}</td>
+        <td><span class="badge badge-{{ 'success' if c['membership_status'] == 'Active' else 'warning' }}">{{ c['membership_status'] or 'Active' }}</span></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="empty-state">No clients yet. <a href="{{ url_for('clients') }}">Add your first client</a>.</p>
+{% endif %}
+{% endblock %}

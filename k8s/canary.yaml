@@ -1,0 +1,61 @@
+# Stable Deployment (90% of traffic)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-fitness-stable
+  namespace: aceest-fitness
+spec:
+  replicas: 9
+  selector:
+    matchLabels:
+      app: aceest-fitness
+  template:
+    metadata:
+      labels:
+        app: aceest-fitness
+        track: stable
+    spec:
+      containers:
+      - name: aceest-fitness
+        image: vmpranavan/aceest-fitness:v3.2.4
+        ports:
+        - containerPort: 5000
+
+---
+# Canary Deployment (10% of traffic)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-fitness-canary
+  namespace: aceest-fitness
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aceest-fitness
+  template:
+    metadata:
+      labels:
+        app: aceest-fitness
+        track: canary
+    spec:
+      containers:
+      - name: aceest-fitness
+        image: vmpranavan/aceest-fitness:v4.0.0
+        ports:
+        - containerPort: 5000
+
+---
+# Shared Service for both stable and canary pods
+apiVersion: v1
+kind: Service
+metadata:
+  name: aceest-fitness-canary-service
+  namespace: aceest-fitness
+spec:
+  type: LoadBalancer
+  selector:
+    app: aceest-fitness
+  ports:
+  - port: 80
+    targetPort: 5000

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Programs — ACEest Fitness{% endblock %}
+{% block content %}
+<h1>Fitness Programs</h1>
+
+<div class="programs-grid">
+{% for name, data in programs.items() %}
+<div class="card program-card">
+    <h3>{{ name }}</h3>
+    <p class="text-muted">{{ data.desc }}</p>
+    <h4>Workout Plan</h4>
+    <pre class="program-detail">{{ data.workout }}</pre>
+    <h4>Nutrition Plan</h4>
+    <pre class="program-detail">{{ data.diet }}</pre>
+    <p><strong>Calorie Factor:</strong> {{ data.factor }} × body weight (kg)</p>
+</div>
+{% endfor %}
+</div>
+
+<div class="card">
+    <h2>AI Program Generator</h2>
+    <form method="POST" action="{{ url_for('generate_program') }}" class="form-inline-grid">
+        <div class="form-group">
+            <label for="gp-client">Client Name</label>
+            <input type="text" id="gp-client" name="client_name" required placeholder="Enter client name">
+        </div>
+        <div class="form-group">
+            <label for="gp-exp">Experience Level</label>
+            <select id="gp-exp" name="experience">
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Generate Program</button>
+        </div>
+    </form>
+</div>
+
+{% if generated_program %}
+<div class="card">
+    <h2>Generated Program for {{ generated_for }} ({{ experience }})</h2>
+    <table class="data-table">
+        <thead><tr><th>Day</th><th>Exercise</th><th>Sets</th><th>Reps</th></tr></thead>
+        <tbody>
+        {% for item in generated_program %}
+        <tr>
+            <td>{{ item.day }}</td>
+            <td>{{ item.exercise }}</td>
+            <td>{{ item.sets }}</td>
+            <td>{{ item.reps }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

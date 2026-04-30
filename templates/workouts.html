@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Workouts — ACEest Fitness{% endblock %}
+{% block content %}
+<h1>Workout Log</h1>
+
+<div class="card">
+    <h2>Log Workout</h2>
+    <form method="POST" action="{{ url_for('add_workout') }}" class="form-inline-grid">
+        <div class="form-group">
+            <label for="w-client">Client</label>
+            <select id="w-client" name="client_name" required>
+                <option value="">Select client...</option>
+                {% for c in clients %}
+                <option value="{{ c['name'] }}">{{ c['name'] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="w-date">Date</label>
+            <input type="date" id="w-date" name="date">
+        </div>
+        <div class="form-group">
+            <label for="w-type">Type</label>
+            <select id="w-type" name="workout_type">
+                <option value="Strength">Strength</option>
+                <option value="Hypertrophy">Hypertrophy</option>
+                <option value="Conditioning">Conditioning</option>
+                <option value="Mixed">Mixed</option>
+                <option value="Mobility">Mobility</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="w-dur">Duration (min)</label>
+            <input type="number" id="w-dur" name="duration" value="60">
+        </div>
+        <div class="form-group">
+            <label for="w-notes">Notes</label>
+            <input type="text" id="w-notes" name="notes" placeholder="Session notes">
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Log Workout</button>
+        </div>
+    </form>
+</div>
+
+<h2>All Workouts</h2>
+{% if workouts %}
+<table class="data-table">
+    <thead><tr><th>Client</th><th>Date</th><th>Type</th><th>Duration</th><th>Notes</th></tr></thead>
+    <tbody>
+    {% for w in workouts %}
+    <tr>
+        <td><a href="{{ url_for('client_detail', name=w['client_name']) }}">{{ w['client_name'] }}</a></td>
+        <td>{{ w['date'] }}</td>
+        <td>{{ w['workout_type'] }}</td>
+        <td>{{ w['duration_min'] }} min</td>
+        <td>{{ w['notes'] or '—' }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="empty-state">No workouts logged yet.</p>
+{% endif %}
+{% endblock %}

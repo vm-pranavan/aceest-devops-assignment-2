@@ -1,0 +1,102 @@
+# Version A Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-fitness-v-a
+  namespace: aceest-fitness
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: aceest-fitness
+      version: a
+  template:
+    metadata:
+      labels:
+        app: aceest-fitness
+        version: a
+    spec:
+      containers:
+      - name: aceest-fitness
+        image: vmpranavan/aceest-fitness:v3.2.4
+        ports:
+        - containerPort: 5000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aceest-fitness-svc-a
+  namespace: aceest-fitness
+spec:
+  selector:
+    app: aceest-fitness
+    version: a
+  ports:
+  - port: 80
+    targetPort: 5000
+
+---
+# Version B Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-fitness-v-b
+  namespace: aceest-fitness
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: aceest-fitness
+      version: b
+  template:
+    metadata:
+      labels:
+        app: aceest-fitness
+        version: b
+    spec:
+      containers:
+      - name: aceest-fitness
+        image: vmpranavan/aceest-fitness:v4.0.0
+        ports:
+        - containerPort: 5000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aceest-fitness-svc-b
+  namespace: aceest-fitness
+spec:
+  selector:
+    app: aceest-fitness
+    version: b
+  ports:
+  - port: 80
+    targetPort: 5000
+
+---
+# A/B Testing Ingress - Routing based on a custom header (e.g. 'X-Feature-Flag: new-ui')
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aceest-fitness-ab-ingress
+  namespace: aceest-fitness
+  annotations:
+    nginx.ingress.kubernetes.io/server-snippet: |
+      set $target_service "aceest-fitness-svc-a";
+      if ($http_x_feature_flag = "new-ui") {
+          set $target_service "aceest-fitness-svc-b";
+      }
+spec:
+  rules:
+  - host: aceest.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: aceest-fitness-svc-a
+            port:
+              number: 80
