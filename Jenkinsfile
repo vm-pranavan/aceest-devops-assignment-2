@@ -87,11 +87,11 @@ pipeline {
                 KUBECONFIG = credentials('kubeconfig')
             }
             steps {
-                sh 'kubectl apply -f k8s/namespace.yaml'
+                sh '/usr/local/bin/kubectl apply -f k8s/namespace.yaml'
                 
                 // Deploying rolling update as default
                 sh "sed -i 's|vmpranavan/aceest-fitness:latest|${DOCKER_IMAGE}:${env.BUILD_NUMBER}|g' k8s/rolling-update.yaml"
-                sh 'kubectl apply -f k8s/rolling-update.yaml'
+                sh '/usr/local/bin/kubectl apply -f k8s/rolling-update.yaml'
             }
         }
     }
