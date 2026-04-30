@@ -1,9 +1,16 @@
+"""Tkinter-based ACEest Fitness app (version 1.1)."""
+# pylint: disable=invalid-name
+
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-class ACEestApp:
-    def __init__(self, root):
-        self.root = root
+
+class ACEestApp:  # pylint: disable=too-many-instance-attributes
+    """Tkinter UI for program display and client tracking."""
+
+    def __init__(self, tk_root):
+        """Initialize the app with program data and UI layout."""
+        self.root = tk_root
         self.root.title("ACEest Fitness & Performance")
         self.root.geometry("1150x780")
         self.root.configure(bg="#1a1a1a")
@@ -66,12 +73,24 @@ class ACEestApp:
         self.setup_ui()
 
     def setup_styles(self):
+        """Configure ttk widget styles."""
         style = ttk.Style()
         style.theme_use("default")
-        style.configure("TCombobox", fieldbackground="#333", background="#333", foreground="white")
-        style.configure("TButton", background="#d4af37", foreground="black", font=("Arial", 10, "bold"))
+        style.configure(
+            "TCombobox",
+            fieldbackground="#333",
+            background="#333",
+            foreground="white",
+        )
+        style.configure(
+            "TButton",
+            background="#d4af37",
+            foreground="black",
+            font=("Arial", 10, "bold"),
+        )
 
     def setup_ui(self):
+        """Build and layout the main interface."""
         header = tk.Frame(self.root, bg="#d4af37", height=80)
         header.pack(fill="x")
         tk.Label(
@@ -86,8 +105,13 @@ class ACEestApp:
         main.pack(fill="both", expand=True, padx=20, pady=20)
 
         # LEFT PANEL – CLIENT PROFILE
-        left = tk.LabelFrame(main, text=" Client Profile ", bg="#1a1a1a",
-                             fg="#d4af37", font=("Arial", 12, "bold"))
+        left = tk.LabelFrame(
+            main,
+            text=" Client Profile ",
+            bg="#1a1a1a",
+            fg="#d4af37",
+            font=("Arial", 12, "bold"),
+        )
         left.pack(side="left", fill="y", padx=10)
 
         self.name_var = tk.StringVar()
@@ -110,8 +134,19 @@ class ACEestApp:
         self.program_box.pack(padx=20)
         self.program_box.bind("<<ComboboxSelected>>", self.update_program)
 
-        tk.Label(left, text="Weekly Adherence (%)", bg="#1a1a1a", fg="white").pack(pady=10)
-        ttk.Scale(left, from_=0, to=100, variable=self.progress_var, orient="horizontal").pack(padx=20)
+        tk.Label(
+            left,
+            text="Weekly Adherence (%)",
+            bg="#1a1a1a",
+            fg="white",
+        ).pack(pady=10)
+        ttk.Scale(
+            left,
+            from_=0,
+            to=100,
+            variable=self.progress_var,
+            orient="horizontal",
+        ).pack(padx=20)
 
         ttk.Button(left, text="Save Client", command=self.save_client).pack(pady=15)
         ttk.Button(left, text="Reset", command=self.reset).pack()
@@ -137,12 +172,24 @@ class ACEestApp:
         self.calorie_label.pack(pady=10)
 
     def _input(self, parent, label, variable):
+        """Create a labeled entry field."""
         tk.Label(parent, text=label, bg="#1a1a1a", fg="white").pack(pady=5)
-        tk.Entry(parent, textvariable=variable, bg="#333", fg="white").pack(padx=20)
+        tk.Entry(
+            parent,
+            textvariable=variable,
+            bg="#333",
+            fg="white",
+        ).pack(padx=20)
 
     def _scrollable_block(self, parent, title):
-        frame = tk.LabelFrame(parent, text=title, bg="#1a1a1a",
-                              fg="#d4af37", font=("Arial", 12))
+        """Create a labeled scrollable text block."""
+        frame = tk.LabelFrame(
+            parent,
+            text=title,
+            bg="#1a1a1a",
+            fg="#d4af37",
+            font=("Arial", 12),
+        )
         frame.pack(fill="both", expand=True, pady=5)
 
         text = tk.Text(frame, bg="#111", fg="white", wrap="word", height=10)
@@ -150,7 +197,8 @@ class ACEestApp:
         text.config(state="disabled")
         return text
 
-    def update_program(self, event=None):
+    def update_program(self, _event=None):
+        """Update UI content for the selected program."""
         program = self.program_var.get()
         data = self.programs[program]
 
@@ -162,14 +210,19 @@ class ACEestApp:
             self.calorie_label.config(text=f"Estimated Calories: {calories} kcal")
 
     def _update_text(self, widget, content, color):
+        """Replace text widget content with colorized text."""
         widget.config(state="normal")
         widget.delete("1.0", "end")
         widget.insert("end", content)
         widget.config(fg=color, state="disabled")
 
     def save_client(self):
+        """Validate and save client information."""
         if not self.name_var.get() or not self.program_var.get():
-            messagebox.showwarning("Incomplete", "Please fill client name and program.")
+            messagebox.showwarning(
+                "Incomplete",
+                "Please fill client name and program.",
+            )
             return
 
         messagebox.showinfo(
@@ -179,6 +232,7 @@ class ACEestApp:
         )
 
     def reset(self):
+        """Clear all inputs and reset the display."""
         self.name_var.set("")
         self.age_var.set(0)
         self.weight_var.set(0)

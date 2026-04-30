@@ -1,3 +1,6 @@
+"""Tkinter-based ACEest Fitness app (version 2.1.2)."""
+# pylint: disable=invalid-name
+
 import tkinter as tk
 from tkinter import ttk, messagebox
 import sqlite3
@@ -6,8 +9,11 @@ from datetime import datetime
 DB_NAME = "aceest_fitness.db"
 
 class ACEestApp:
-    def __init__(self, root):
-        self.root = root
+    """Tkinter UI for managing clients and progress."""
+
+    def __init__(self, tk_root):
+        """Initialize the app, database, and UI."""
+        self.root = tk_root
         self.root.title("ACEest Fitness & Performance")
         self.root.geometry("1200x800")
         self.root.configure(bg="#1a1a1a")
@@ -18,6 +24,7 @@ class ACEestApp:
 
     # ---------- DATABASE ----------
     def init_db(self):
+        """Initialize database tables if they do not exist."""
         self.conn = sqlite3.connect(DB_NAME)
         self.cur = self.conn.cursor()
 
@@ -44,6 +51,7 @@ class ACEestApp:
 
     # ---------- DATA ----------
     def setup_data(self):
+        """Load program data for calorie calculations."""
         self.programs = {
             "Fat Loss (FL)": {"factor": 22},
             "Muscle Gain (MG)": {"factor": 35},
@@ -52,6 +60,7 @@ class ACEestApp:
 
     # ---------- UI ----------
     def setup_ui(self):
+        """Build and layout the main interface."""
         header = tk.Label(
             self.root,
             text="ACEest Functional Fitness System",
@@ -66,8 +75,13 @@ class ACEestApp:
         main.pack(fill="both", expand=True, padx=20, pady=20)
 
         # LEFT PANEL
-        left = tk.LabelFrame(main, text=" Client Management ",
-                             bg="#1a1a1a", fg="#d4af37", font=("Arial", 12, "bold"))
+        left = tk.LabelFrame(
+            main,
+            text=" Client Management ",
+            bg="#1a1a1a",
+            fg="#d4af37",
+            font=("Arial", 12, "bold"),
+        )
         left.pack(side="left", fill="y", padx=10)
 
         self.name = tk.StringVar()
@@ -81,38 +95,65 @@ class ACEestApp:
         self._field(left, "Weight (kg)", self.weight)
 
         tk.Label(left, text="Program", bg="#1a1a1a", fg="white").pack(pady=5)
-        ttk.Combobox(left, textvariable=self.program,
-                     values=list(self.programs.keys()),
-                     state="readonly").pack()
+        ttk.Combobox(
+            left,
+            textvariable=self.program,
+            values=list(self.programs.keys()),
+            state="readonly",
+        ).pack()
 
-        tk.Label(left, text="Weekly Adherence %", bg="#1a1a1a", fg="white").pack(pady=10)
-        ttk.Scale(left, from_=0, to=100,
-                  orient="horizontal", variable=self.adherence).pack()
+        tk.Label(
+            left,
+            text="Weekly Adherence %",
+            bg="#1a1a1a",
+            fg="white",
+        ).pack(pady=10)
+        ttk.Scale(
+            left,
+            from_=0,
+            to=100,
+            orient="horizontal",
+            variable=self.adherence,
+        ).pack()
 
         ttk.Button(left, text="Save Client", command=self.save_client).pack(pady=10)
         ttk.Button(left, text="Load Client", command=self.load_client).pack(pady=5)
         ttk.Button(left, text="Save Progress", command=self.save_progress).pack(pady=5)
 
         # RIGHT PANEL
-        right = tk.LabelFrame(main, text=" Client Summary ",
-                              bg="#1a1a1a", fg="#d4af37", font=("Arial", 12))
+        right = tk.LabelFrame(
+            main,
+            text=" Client Summary ",
+            bg="#1a1a1a",
+            fg="#d4af37",
+            font=("Arial", 12),
+        )
         right.pack(side="right", fill="both", expand=True)
 
-        self.summary = tk.Text(right, bg="#111", fg="white", font=("Consolas", 11))
+        self.summary = tk.Text(
+            right,
+            bg="#111",
+            fg="white",
+            font=("Consolas", 11),
+        )
         self.summary.pack(fill="both", expand=True, padx=10, pady=10)
 
     # ---------- HELPERS ----------
     def _field(self, parent, label, var):
+        """Create a labeled entry field."""
         tk.Label(parent, text=label, bg="#1a1a1a", fg="white").pack(pady=5)
         tk.Entry(parent, textvariable=var, bg="#333", fg="white").pack()
 
     # ---------- LOGIC ----------
     def save_client(self):
+        """Persist client details and computed calories."""
         if not self.name.get() or not self.program.get():
             messagebox.showerror("Error", "Name and Program required")
             return
 
-        calories = int(self.weight.get() * self.programs[self.program.get()]["factor"])
+        calories = int(
+            self.weight.get() * self.programs[self.program.get()]["factor"]
+        )
 
         try:
             self.cur.execute("""
@@ -127,7 +168,11 @@ class ACEestApp:
             messagebox.showerror("DB Error", str(e))
 
     def load_client(self):
-        self.cur.execute("SELECT * FROM clients WHERE name=?", (self.name.get(),))
+        """Load client data into the form and summary view."""
+        self.cur.execute(
+            "SELECT * FROM clients WHERE name=?",
+            (self.name.get(),),
+        )
         row = self.cur.fetchone()
 
         if not row:
@@ -151,6 +196,7 @@ Calories : {calories} kcal/day
 """)
 
     def save_progress(self):
+        """Record weekly adherence progress."""
         week = datetime.now().strftime("Week %U - %Y")
         self.cur.execute("""
             INSERT INTO progress (client_name, week, adherence)

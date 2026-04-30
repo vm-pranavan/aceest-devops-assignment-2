@@ -3,6 +3,7 @@ Unit tests for the ACEest Fitness Flask application.
 Tests cover: health check, authentication, client CRUD, workouts,
 BMI calculation, program generation, and database initialization.
 """
+# pylint: disable=duplicate-code
 
 import json
 from app import calculate_bmi, calculate_calories, generate_ai_program
