@@ -17,10 +17,10 @@ def test_env(tmp_path_factory):
 @pytest.fixture(name="app")
 def flask_app(setup_test_env):
     """Create application for testing with a temp database."""
-    # We import app inside the fixture to ensure environment variables are already set
+    # Import inside the fixture so env vars from setup_test_env are applied first.
     import app as flask_app_module  # pylint: disable=import-outside-toplevel
 
-    flask_app_module.DB_NAME = setup_test_env
+    os.environ["DB_NAME"] = setup_test_env
     flask_app_instance = flask_app_module.app
     flask_app_instance.config["TESTING"] = True
 
