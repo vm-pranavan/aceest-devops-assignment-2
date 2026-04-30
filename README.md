@@ -14,18 +14,22 @@ This repository contains the completed DevOps Assignment 2. The project involves
 
 ### 1. Minikube Application Running
 The containerized application successfully deployed and running locally via Minikube.
+
 ![Minikube Application](screenshots/minikube.png)
 
 ### 2. Jenkins CI/CD Dashboard
 The full 8-stage Jenkins pipeline passing successfully with 100% test coverage.
+
 ![Jenkins Dashboard](screenshots/jenkins.png)
 
 ### 3. SonarQube Code Quality Analysis
 The SonarQube Quality Gate passing with 0 bugs, 0 vulnerabilities, and A-rating for maintainability.
+
 ![SonarQube Dashboard](screenshots/sonarqube.png)
 
 ### 4. GitHub Actions (Pylint)
 The automated GitHub Actions workflow passing the Pylint code quality checks.
+
 ![GitHub Actions](screenshots/github_actions.png)
 
 ## Deployment Strategies
