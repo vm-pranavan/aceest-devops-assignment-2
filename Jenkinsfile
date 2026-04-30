@@ -41,7 +41,7 @@ pipeline {
             }
             steps {
                 sh 'pip install -r requirements.txt'
-                sh 'pytest tests/ -v --cov=app --cov-report=xml --cov-report=html'
+                sh 'pytest tests/ -v --cov=app --cov-report=xml --cov-report=html --junitxml=test-results/results.xml'
             }
             post {
                 always {
