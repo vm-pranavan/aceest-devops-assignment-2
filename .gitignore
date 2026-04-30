@@ -52,3 +52,5 @@ coverage.xml
 # Assignment specific
 *.docx
 *.pdf
+kubeconfig*.yaml
+test-results/
