@@ -5,26 +5,30 @@ Pytest configuration and fixtures for ACEest Fitness tests.
 import os
 import pytest
 
-from app import app as flask_app, init_db
-
+@pytest.fixture(scope="session", autouse=True)
+def setup_test_env(tmp_path_factory):
+    """Set up the test environment variables before anything is imported."""
+    db_path = str(tmp_path_factory.mktemp("db") / "test_aceest.db")
+    os.environ["DB_NAME"] = db_path
+    os.environ["TESTING"] = "true"
+    os.environ["SECRET_KEY"] = "test-secret-key"
+    return db_path
 
 @pytest.fixture
-def app(tmp_path):
+def app(setup_test_env):
     """Create application for testing with a temp database."""
-    db_path = str(tmp_path / "test_aceest.db")
+    # We import app inside the fixture to ensure environment variables are already set
+    import app as flask_app_module
+    
+    flask_app = flask_app_module.app
     flask_app.config["TESTING"] = True
-    flask_app.config["SECRET_KEY"] = "test-secret-key"
-    os.environ["DB_NAME"] = db_path
-
-    # Re-import to pick up new DB_NAME
-    import app as app_module
-    app_module.DB_NAME = db_path
-    init_db()
+    
+    # Initialize the database
+    flask_app_module.init_db()
 
     yield flask_app
 
-    if os.path.exists(db_path):
-        os.remove(db_path)
+    # Cleanup is handled by tmp_path_factory
 
 
 @pytest.fixture
