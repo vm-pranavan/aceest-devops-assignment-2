@@ -35,7 +35,7 @@ def get_db():
 
 
 @app.teardown_appcontext
-def close_db(exception):
+def close_db(_exception):
     """Close database connection at end of request."""
     db = g.pop("db", None)
     if db is not None:
@@ -248,22 +248,22 @@ def calculate_bmi(weight_kg, height_cm):
     if height_cm <= 0 or weight_kg <= 0:
         return None, "Invalid", "Invalid input"
     h_m = height_cm / 100.0
-    bmi = round(weight_kg / (h_m * h_m), 1)
+    bmi_value = round(weight_kg / (h_m * h_m), 1)
 
-    if bmi < 18.5:
+    if bmi_value < 18.5:
         category = "Underweight"
         risk = "Potential nutrient deficiency, low energy."
-    elif bmi < 25:
+    elif bmi_value < 25:
         category = "Normal"
         risk = "Low risk if active and strong."
-    elif bmi < 30:
+    elif bmi_value < 30:
         category = "Overweight"
         risk = "Moderate risk; focus on adherence and progressive activity."
     else:
         category = "Obese"
         risk = "Higher risk; prioritize fat loss, consistency, and supervision."
 
-    return bmi, category, risk
+    return bmi_value, category, risk
 
 
 def calculate_calories(weight_kg, program_name):
@@ -339,8 +339,7 @@ def login():
             session["role"] = user["role"]
             flash(f"Welcome back, {user['username']}!", "success")
             return redirect(url_for("dashboard"))
-        else:
-            flash("Invalid credentials. Try admin / admin", "danger")
+        flash("Invalid credentials. Try admin / admin", "danger")
 
     return render_template("login.html")
 
@@ -444,8 +443,9 @@ def client_detail(name):
     ).fetchall()
 
     # Get workouts
-    workouts = db.execute(
-        "SELECT date, workout_type, duration_min, notes FROM workouts WHERE client_name = ? ORDER BY date DESC",
+    client_workouts = db.execute(
+        "SELECT date, workout_type, duration_min, notes "
+        "FROM workouts WHERE client_name = ? ORDER BY date DESC",
         (name,)
     ).fetchall()
 
@@ -458,8 +458,8 @@ def client_detail(name):
     # Calculate BMI
     bmi_data = None
     if client["height"] and client["weight"]:
-        bmi, category, risk = calculate_bmi(client["weight"], client["height"])
-        bmi_data = {"bmi": bmi, "category": category, "risk": risk}
+        bmi_value, category, risk = calculate_bmi(client["weight"], client["height"])
+        bmi_data = {"bmi": bmi_value, "category": category, "risk": risk}
 
     # Average adherence
     avg_result = db.execute(
@@ -471,7 +471,7 @@ def client_detail(name):
         "client_detail.html",
         client=client,
         progress=progress,
-        workouts=workouts,
+        workouts=client_workouts,
         metrics=metrics,
         bmi_data=bmi_data,
         avg_adherence=avg_adherence,
@@ -547,7 +547,9 @@ def add_workout():
 
     db = get_db()
     db.execute(
-        "INSERT INTO workouts (client_name, date, workout_type, duration_min, notes) VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO workouts "
+        "(client_name, date, workout_type, duration_min, notes) "
+        "VALUES (?, ?, ?, ?, ?)",
         (client_name, w_date, workout_type, duration, notes)
     )
     db.commit()

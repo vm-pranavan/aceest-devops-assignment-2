@@ -5,7 +5,6 @@ BMI calculation, program generation, and database initialization.
 """
 
 import json
-import pytest
 from app import calculate_bmi, calculate_calories, generate_ai_program
 
 
@@ -270,22 +269,26 @@ class TestBMI:
 
     def test_bmi_underweight(self):
         """BMI below 18.5 should be Underweight."""
-        bmi, cat, _ = calculate_bmi(50, 180)
+        bmi_value, cat, _ = calculate_bmi(50, 180)
+        assert bmi_value is not None
         assert cat == "Underweight"
 
     def test_bmi_normal(self):
         """BMI 18.5-24.9 should be Normal."""
-        bmi, cat, _ = calculate_bmi(70, 175)
+        bmi_value, cat, _ = calculate_bmi(70, 175)
+        assert bmi_value is not None
         assert cat == "Normal"
 
     def test_bmi_overweight(self):
         """BMI 25-29.9 should be Overweight."""
-        bmi, cat, _ = calculate_bmi(90, 175)
+        bmi_value, cat, _ = calculate_bmi(90, 175)
+        assert bmi_value is not None
         assert cat == "Overweight"
 
     def test_bmi_obese(self):
         """BMI >= 30 should be Obese."""
-        bmi, cat, _ = calculate_bmi(120, 175)
+        bmi_value, cat, _ = calculate_bmi(120, 175)
+        assert bmi_value is not None
         assert cat == "Obese"
 
     def test_bmi_invalid_input(self):
